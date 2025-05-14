@@ -1,0 +1,222 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+struct Buku {
+    string judul;
+    int harga;
+    Buku* prev;
+    Buku* next;
+};
+
+Buku* head = nullptr;
+Buku* tail = nullptr;
+
+void clearInput() {
+    cin.clear();
+    while (cin.get() != '\n'); 
+}
+
+void tambahBuku(string judul, int harga) {
+    Buku* baru = new Buku{judul, harga, nullptr, nullptr};
+    if (!head) {
+        head = tail = baru;
+    } else {
+        tail->next = baru;
+        baru->prev = tail;
+        tail = baru;
+    }
+    cout << "Buku berhasil ditambahkan.\n";
+}
+
+void tampilkanBuku() {
+    if (!head) {
+        cout << "Belum ada data buku.\n";
+        return;
+    }
+
+    Buku* temp = head;
+    cout << "\nDaftar Buku:\n";
+    while (temp) {
+        cout << "Judul: " << temp->judul << ", Harga: Rp" << temp->harga << endl;
+        temp = temp->next;
+    }
+}
+
+void cariBuku(string judul) {
+    Buku* temp = head;
+    while (temp) {
+        if (temp->judul == judul) {
+            cout << "Buku ditemukan: " << temp->judul << ", Harga: Rp" << temp->harga << endl;
+            return;
+        }
+        temp = temp->next;
+    }
+    cout << "Buku tidak ditemukan.\n";
+}
+
+void sisipDepan(string judul, int harga) {
+    Buku* baru = new Buku{judul, harga, nullptr, head};
+    if (head) head->prev = baru;
+    head = baru;
+    if (!tail) tail = baru;
+}
+
+void sisipTengah(string judul, int harga, int posisi) {
+    if (posisi <= 1 || !head) {
+        sisipDepan(judul, harga);
+        return;
+    }
+
+    Buku* temp = head;
+    int index = 1;
+
+    while (temp && index < posisi) {
+        temp = temp->next;
+        index++;
+    }
+
+    if (!temp) {
+        tambahBuku(judul, harga);
+        return;
+    }
+
+    Buku* baru = new Buku{judul, harga, temp->prev, temp};
+    if (temp->prev) temp->prev->next = baru;
+    temp->prev = baru;
+}
+
+void hapusBuku(string judul) {
+    Buku* temp = head;
+    while (temp) {
+        if (temp->judul == judul) {
+            if (temp->prev) temp->prev->next = temp->next;
+            else head = temp->next;
+
+            if (temp->next) temp->next->prev = temp->prev;
+            else tail = temp->prev;
+
+            delete temp;
+            cout << "Buku berhasil dihapus.\n";
+            return;
+        }
+        temp = temp->next;
+    }
+    cout << "Buku tidak ditemukan.\n";
+}
+
+void menuSisip() {
+    int pilihan, harga, posisi;
+    string judul;
+
+    cout << "\n1. Sisip di Depan\n";
+    cout << "2. Sisip di Tengah\n";
+    cout << "3. Sisip di Belakang\n";
+    cout << "Pilih: ";
+    cin >> pilihan;
+
+    if (cin.fail()) {
+        clearInput();
+        cout << "Input salah. Masukkan angka.\n";
+        return;
+    }
+
+    cin.ignore();
+    cout << "Judul Buku: ";
+    getline(cin, judul);
+
+    cout << "Harga Buku: Rp";
+    cin >> harga;
+    if (cin.fail() || harga < 0) {
+        clearInput();
+        cout << "Harga tidak valid.\n";
+        return;
+    }
+
+    if (pilihan == 1) {
+        sisipDepan(judul, harga);
+    } else if (pilihan == 2) {
+        cout << "Posisi sisip (angka): ";
+        cin >> posisi;
+        if (cin.fail() || posisi <= 0) {
+            clearInput();
+            cout << "Posisi tidak valid.\n";
+            return;
+        }
+        sisipTengah(judul, harga, posisi);
+    } else if (pilihan == 3) {
+        tambahBuku(judul, harga);
+    } else {
+        cout << "Pilihan tidak valid.\n";
+    }
+}
+
+int main() {
+    int pilihan;
+    string judul;
+    int harga;
+
+    while (true) {
+        cout << "\n=== Menu ===\n";
+        cout << "1. Tambah Buku\n";
+        cout << "2. Tampilkan Buku\n";
+        cout << "3. Cari Buku\n";
+        cout << "4. Sisip Buku (Depan, Tengah, Belakang)\n";
+        cout << "5. Hapus Buku\n";
+        cout << "6. Keluar\n";
+        cout << "Pilih Menu: ";
+        cin >> pilihan;
+
+        if (cin.fail()) {
+            clearInput();
+            cout << "Input tidak valid. Masukkan angka 1 - 6.\n";
+            continue;
+        }
+
+        cin.ignore();
+
+        switch (pilihan) {
+            case 1:
+                cout << "Judul Buku: ";
+                getline(cin, judul);
+                cout << "Harga Buku: Rp";
+                cin >> harga;
+                if (cin.fail() || harga < 0) {
+                    clearInput();
+                    cout << "Harga tidak valid.\n";
+                    break;
+                }
+                tambahBuku(judul, harga);
+                break;
+
+            case 2:
+                tampilkanBuku();
+                break;
+
+            case 3:
+                cout << "Judul Buku yang Dicari: ";
+                getline(cin, judul);
+                cariBuku(judul);
+                break;
+
+            case 4:
+                menuSisip();
+                break;
+
+            case 5:
+                cout << "Judul Buku yang Akan Dihapus: ";
+                getline(cin, judul);
+                hapusBuku(judul);
+                break;
+
+            case 6:
+                cout << "Terima kasih.\n";
+                return 0;
+
+            default:
+                cout << "Menu tidak tersedia. Silakan pilih 1 - 6.\n";
+        }
+    }
+
+    return 0;
+}
